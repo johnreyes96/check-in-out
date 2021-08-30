@@ -52,11 +52,11 @@ namespace check_in_out.Functions.Functions
             [Table("checkInOut", Connection = "AzureWebJobsStorage")] CloudTable checkInOutTable,
             ILogger log)
         {
-            log.LogInformation("Get all check in and check out received.");
+            log.LogInformation("Get all check ins and check outs received.");
 
             TableQuery<CheckInOutEntity> query = new TableQuery<CheckInOutEntity>();
             TableQuerySegment<CheckInOutEntity> checkInOuts = await checkInOutTable.ExecuteQuerySegmentedAsync(query, null);
-            string message = "Retrieved all check in and check out.";
+            string message = "Retrieved all check ins and check outs.";
 
             log.LogInformation(message);
 
