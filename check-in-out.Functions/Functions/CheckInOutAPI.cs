@@ -70,19 +70,19 @@ namespace check_in_out.Functions.Functions
             string id,
             ILogger log)
         {
-            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
-            log.LogInformation($"Get " + typeDescription + " by id: {id}, received.");
+            log.LogInformation($"Get check in or check out by id: {id}, received.");
 
             Response response = Response.Instance;
             if (checkInOutEntity == null)
             {
                 return new BadRequestObjectResult(response.CreateResponseError("Check in or check out not found."));
             }
+            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
             string message = typeDescription + $": {checkInOutEntity.RowKey}. retrieved.";
 
             log.LogInformation(message);
 
-            return new OkObjectResult(Response.Instance.CreateResponseOK(message, checkInOutEntity));
+            return new OkObjectResult(response.CreateResponseOK(message, checkInOutEntity));
         }
 
         [FunctionName(nameof(UpdateCheckInOutById))]
@@ -120,7 +120,7 @@ namespace check_in_out.Functions.Functions
 
             log.LogInformation(message);
 
-            return new OkObjectResult(Response.Instance.CreateResponseOK(message, checkInOutEntity));
+            return new OkObjectResult(response.CreateResponseOK(message, checkInOutEntity));
         }
 
         private static CheckInOutEntity GetCheckInOutEntityUpdated(TableResult findResult, CheckInOut checkInOut)
@@ -139,6 +139,31 @@ namespace check_in_out.Functions.Functions
             }
 
             return checkInOutEntity;
+        }
+
+        [FunctionName(nameof(DeleteCheckInOut))]
+        public static async Task<IActionResult> DeleteCheckInOut(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "checkInOut/{id}")] HttpRequest req,
+            [Table("checkInOut", "CHECKINOUT", "{id}", Connection = "AzureWebJobsStorage")] CheckInOutEntity checkInOutEntity,
+            [Table("checkInOut", Connection = "AzureWebJobsStorage")] CloudTable checkInOutTable,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation($"Delete check in or check out: {id}, received.");
+
+            Response response = Response.Instance;
+            if (checkInOutEntity == null)
+            {
+                string messageError = "Check in or check out not found.";
+                return new BadRequestObjectResult(response.CreateResponseError(messageError));
+            }
+            await checkInOutTable.ExecuteAsync(TableOperation.Delete(checkInOutEntity));
+            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
+            string message = typeDescription + $": {checkInOutEntity.RowKey}. deleted.";
+
+            log.LogInformation(message);
+
+            return new OkObjectResult(response.CreateResponseOK(message, checkInOutEntity));
         }
     }
 }
