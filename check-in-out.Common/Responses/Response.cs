@@ -16,5 +16,14 @@
                 Result = checkInOutEntityEntity
             };
         }
+
+        public Response CreateResponseError(string message)
+        {
+            return new Response
+            {
+                IsSuccess = false,
+                Message = message
+            };
+        }
     }
 }

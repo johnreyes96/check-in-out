@@ -4,9 +4,9 @@ namespace check_in_out.Common.Models
 {
     public class CheckInOut
     {
-        public string EmployeeId { get; set; }
+        public Int32 EmployeeId { get; set; }
         public DateTime DateCheck { get; set; }
-        public Int16 Type { get; set; }
+        public Int32 Type { get; set; }
         public bool IsConsolidated { get; set; }
 
         public string ValidateRequiredFields()
@@ -19,7 +19,7 @@ namespace check_in_out.Common.Models
         public string ValidateEmptyFields()
         {
             string message = string.Empty;
-            if (string.IsNullOrEmpty(EmployeeId))
+            if (EmployeeId == 0)
             {
                 message += "The request must have a EmployeeId.";
             }
@@ -39,12 +39,12 @@ namespace check_in_out.Common.Models
             return message;
         }
 
-        public string GetMessageNewCheckInOut()
+        public string GetTypeDescription()
         {
             return Type switch
             {
-                0 => "New check in stored in table.",
-                1 => "New check out stored in table.",
+                0 => "check in",
+                1 => "check out",
                 _ => "The field Type is a invalid value.",
             };
         }
