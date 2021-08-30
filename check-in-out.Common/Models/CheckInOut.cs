@@ -11,14 +11,14 @@ namespace check_in_out.Common.Models
 
         public string ValidateRequiredFields()
         {
-            string message = ValidateEmptyFields();
+            string message = string.Empty;
+            message = ValidateEmptyFields(message);
             message = ValidateType(message);
             return message;
         }
 
-        public string ValidateEmptyFields()
+        private string ValidateEmptyFields(string message)
         {
-            string message = string.Empty;
             if (EmployeeId == 0)
             {
                 message += "The request must have a EmployeeId.";
@@ -37,16 +37,6 @@ namespace check_in_out.Common.Models
                 message += " The field Type is a invalid value.";
             }
             return message;
-        }
-
-        public string GetTypeDescription()
-        {
-            return Type switch
-            {
-                0 => "check in",
-                1 => "check out",
-                _ => "The field Type is a invalid value.",
-            };
         }
     }
 }

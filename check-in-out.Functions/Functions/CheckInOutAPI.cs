@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -37,7 +38,8 @@ namespace check_in_out.Functions.Functions
             CheckInOutEntity checkInOutEntity = CheckInOutEntity.Instance.CreateCheckInOutEntityFromCheckInOut(checkInOut);
             TableOperation addOperation = TableOperation.Insert(checkInOutEntity);
             await checkInOutTable.ExecuteAsync(addOperation);
-            string message = "New " + checkInOut.GetTypeDescription() + " stored in table.";
+            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
+            string message = "New " + typeDescription + " stored in table.";
 
             log.LogInformation(message);
 
@@ -68,19 +70,75 @@ namespace check_in_out.Functions.Functions
             string id,
             ILogger log)
         {
-            log.LogInformation($"Get check in or check out by id: {id}, received.");
+            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
+            log.LogInformation($"Get " + typeDescription + " by id: {id}, received.");
 
             Response response = Response.Instance;
             if (checkInOutEntity == null)
             {
                 return new BadRequestObjectResult(response.CreateResponseError("Check in or check out not found."));
             }
-            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
             string message = typeDescription + $": {checkInOutEntity.RowKey}. retrieved.";
 
             log.LogInformation(message);
 
             return new OkObjectResult(Response.Instance.CreateResponseOK(message, checkInOutEntity));
+        }
+
+        [FunctionName(nameof(UpdateCheckInOutById))]
+        public static async Task<IActionResult> UpdateCheckInOutById(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "checkInOut/{id}")] HttpRequest req,
+                [Table("checkInOut", Connection = "AzureWebJobsStorage")] CloudTable checkInOutTable,
+                string id,
+                ILogger log)
+        {
+            log.LogInformation($"Update for check in or check out: {id}, received.");
+
+            TableOperation findOperation = TableOperation.Retrieve<CheckInOutEntity>("CHECKINOUT", id);
+            TableResult findResult = await checkInOutTable.ExecuteAsync(findOperation);
+            Response response = Response.Instance;
+
+            if (findResult.Result == null)
+            {
+                return new BadRequestObjectResult(response.CreateResponseError("Check in or check out not found."));
+            }
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            CheckInOut checkInOut = JsonConvert.DeserializeObject<CheckInOut>(requestBody);
+            string messageError = checkInOut.ValidateType(string.Empty);
+
+            if (!string.IsNullOrEmpty(messageError))
+            {
+                return new BadRequestObjectResult(response.CreateResponseError(messageError));
+            }
+
+            CheckInOutEntity checkInOutEntity = GetCheckInOutEntityUpdated(findResult, checkInOut);
+            TableOperation addOperation = TableOperation.Replace(checkInOutEntity);
+            await checkInOutTable.ExecuteAsync(addOperation);
+            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOut.Type);
+            string message = typeDescription + $": {id}, updated in table.";
+
+            log.LogInformation(message);
+
+            return new OkObjectResult(Response.Instance.CreateResponseOK(message, checkInOutEntity));
+        }
+
+        private static CheckInOutEntity GetCheckInOutEntityUpdated(TableResult findResult, CheckInOut checkInOut)
+        {
+            CheckInOutEntity checkInOutEntity = (CheckInOutEntity)findResult.Result;
+            checkInOutEntity.Type = checkInOut.Type;
+
+            if (checkInOut.EmployeeId != 0)
+            {
+                checkInOutEntity.EmployeeId = checkInOut.EmployeeId;
+            }
+
+            if (!DateTime.MinValue.Equals(checkInOut.DateCheck))
+            {
+                checkInOutEntity.DateCheck = checkInOut.DateCheck.ToUniversalTime();
+            }
+
+            return checkInOutEntity;
         }
     }
 }
