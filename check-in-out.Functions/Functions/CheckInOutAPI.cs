@@ -110,7 +110,8 @@ namespace check_in_out.Functions.Functions
                 return new BadRequestObjectResult(response.CreateResponseError(messageError));
             }
 
-            CheckInOutEntity checkInOutEntity = GetCheckInOutEntityUpdated(findResult, checkInOut);
+            CheckInOutEntity checkInOutEntity = (CheckInOutEntity)findResult.Result;
+            checkInOutEntity.PrepareCheckInOutEntityToUpdate(checkInOut);
             await checkInOutTable.ExecuteAsync(TableOperation.Replace(checkInOutEntity));
             string typeDescription = CheckInOutType.Instance.GetDescription(checkInOut.Type);
             string message = $"{typeDescription}: {id}, updated in table.";
@@ -118,24 +119,6 @@ namespace check_in_out.Functions.Functions
             log.LogInformation(message);
 
             return new OkObjectResult(response.CreateResponseOK(message, checkInOutEntity));
-        }
-
-        private static CheckInOutEntity GetCheckInOutEntityUpdated(TableResult findResult, CheckInOut checkInOut)
-        {
-            CheckInOutEntity checkInOutEntity = (CheckInOutEntity)findResult.Result;
-            checkInOutEntity.Type = checkInOut.Type;
-
-            if (checkInOut.EmployeeId != 0)
-            {
-                checkInOutEntity.EmployeeId = checkInOut.EmployeeId;
-            }
-
-            if (!DateTime.MinValue.Equals(checkInOut.DateCheck))
-            {
-                checkInOutEntity.DateCheck = checkInOut.DateCheck.ToUniversalTime();
-            }
-
-            return checkInOutEntity;
         }
 
         [FunctionName(nameof(DeleteCheckInOut))]

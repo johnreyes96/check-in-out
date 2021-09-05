@@ -31,5 +31,20 @@ namespace check_in_out.Functions.Entities
             DateCheck = DateCheck.ToLocalTime();
             IsConsolidated = true;
         }
+
+        internal void PrepareCheckInOutEntityToUpdate(CheckInOut checkInOut)
+        {
+            Type = checkInOut.Type;
+
+            if (checkInOut.EmployeeId != 0)
+            {
+                EmployeeId = checkInOut.EmployeeId;
+            }
+
+            if (!DateTime.MinValue.Equals(checkInOut.DateCheck))
+            {
+                DateCheck = checkInOut.DateCheck.ToUniversalTime();
+            }
+        }
     }
 }
