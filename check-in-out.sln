@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31613.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "check-in-out.Common", "check-in-out.Common\check-in-out.Common.csproj", "{B0FAF669-D4DC-423F-8238-2737B5A81CDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "check-in-out.Common", "check-in-out.Common\check-in-out.Common.csproj", "{B0FAF669-D4DC-423F-8238-2737B5A81CDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "check-in-out.Functions", "check-in-out.Functions\check-in-out.Functions.csproj", "{F63E22D4-F6D7-4A35-B1A4-38373E518FCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "check-in-out.Functions", "check-in-out.Functions\check-in-out.Functions.csproj", "{F63E22D4-F6D7-4A35-B1A4-38373E518FCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "check-in-out.Test", "check-in-out.Test\check-in-out.Test.csproj", "{533E9D12-80E8-44EB-81BD-96907C26C336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "check-in-out.Test", "check-in-out.Test\check-in-out.Test.csproj", "{533E9D12-80E8-44EB-81BD-96907C26C336}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

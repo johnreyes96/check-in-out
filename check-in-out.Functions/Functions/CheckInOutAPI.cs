@@ -1,6 +1,5 @@
 ﻿using check_in_out.Common.Models;
 using check_in_out.Common.Responses;
-using check_in_out.Common.Utils;
 using check_in_out.Functions.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,10 +35,9 @@ namespace check_in_out.Functions.Functions
             }
 
             CheckInOutEntity checkInOutEntity = CheckInOutEntity.Instance.CreateCheckInOutEntityFromCheckInOut(checkInOut);
-            TableOperation addOperation = TableOperation.Insert(checkInOutEntity);
-            await checkInOutTable.ExecuteAsync(addOperation);
-            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
-            string message = "New " + typeDescription + " stored in table.";
+            await checkInOutTable.ExecuteAsync(TableOperation.Insert(checkInOutEntity));
+            string typeDescription = CheckInOutType.Instance.GetDescription(checkInOutEntity.Type);
+            string message = $"New {typeDescription} stored in table.";
 
             log.LogInformation(message);
 
@@ -77,8 +75,8 @@ namespace check_in_out.Functions.Functions
             {
                 return new BadRequestObjectResult(response.CreateResponseError("Check in or check out not found."));
             }
-            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
-            string message = typeDescription + $": {checkInOutEntity.RowKey}. retrieved.";
+            string typeDescription = CheckInOutType.Instance.GetDescription(checkInOutEntity.Type);
+            string message = $"{typeDescription}: {checkInOutEntity.RowKey}. retrieved.";
 
             log.LogInformation(message);
 
@@ -113,10 +111,9 @@ namespace check_in_out.Functions.Functions
             }
 
             CheckInOutEntity checkInOutEntity = GetCheckInOutEntityUpdated(findResult, checkInOut);
-            TableOperation addOperation = TableOperation.Replace(checkInOutEntity);
-            await checkInOutTable.ExecuteAsync(addOperation);
-            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOut.Type);
-            string message = typeDescription + $": {id}, updated in table.";
+            await checkInOutTable.ExecuteAsync(TableOperation.Replace(checkInOutEntity));
+            string typeDescription = CheckInOutType.Instance.GetDescription(checkInOut.Type);
+            string message = $"{typeDescription}: {id}, updated in table.";
 
             log.LogInformation(message);
 
@@ -158,8 +155,8 @@ namespace check_in_out.Functions.Functions
                 return new BadRequestObjectResult(response.CreateResponseError(messageError));
             }
             await checkInOutTable.ExecuteAsync(TableOperation.Delete(checkInOutEntity));
-            string typeDescription = TypeFactory.Instance.GetTypeDescription(checkInOutEntity.Type);
-            string message = typeDescription + $": {checkInOutEntity.RowKey}. deleted.";
+            string typeDescription = CheckInOutType.Instance.GetDescription(checkInOutEntity.Type);
+            string message = $"{typeDescription}: {checkInOutEntity.RowKey}. deleted.";
 
             log.LogInformation(message);
 
