@@ -63,7 +63,7 @@ namespace check_in_out.Functions.Functions
                 try
                 {
                     CheckInOutType.Instance.GetDescription(checkInOutEntity.Type);
-                    log.LogInformation($"There is not information to consolidated.");
+                    log.LogInformation($"There is not information to consolidated at: {checkInOutEntity.RowKey}");
                 }
                 catch (ArgumentException error)
                 {
