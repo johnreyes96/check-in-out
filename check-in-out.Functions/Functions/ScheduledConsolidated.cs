@@ -1,4 +1,5 @@
 using check_in_out.Common.Models;
+using check_in_out.Common.Utils;
 using check_in_out.Functions.Entities;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,7 @@ namespace check_in_out.Functions.Functions
         {
             log.LogInformation($"Consolidating check ins and check outs function executed at: {DateTime.Now}");
 
+            //CheckInOutType checkInOutType = CheckInOutType.Instance;
             string filter = TableQuery.GenerateFilterConditionForBool("IsConsolidated", QueryComparisons.Equal, false);
             TableQuery<CheckInOutEntity> queryCheckInOutEntity = new TableQuery<CheckInOutEntity>().Where(filter);
             TableQuerySegment<CheckInOutEntity> checkInOutEntities = await checkInOutTable.ExecuteQuerySegmentedAsync(queryCheckInOutEntity, null);
@@ -34,20 +36,28 @@ namespace check_in_out.Functions.Functions
             foreach (string checkInOutEntityRowKey in checkInsOutsEntityMap.Keys)
             {
                 CheckInOutEntity checkInOutEntity = checkInsOutsEntityMap[checkInOutEntityRowKey];
-                if (CheckInOutType.CheckIn.Code.Equals(checkInOutEntity.Type))
+                if (CheckInOutTypeFactory.Instance.CheckIn.Code.Equals(checkInOutEntity.Type))
                 {
                     checkInRowKey = checkInOutEntityRowKey;
                     continue;
                 }
-                if (CheckInOutType.CheckOut.Code.Equals(checkInOutEntity.Type) && !string.Empty.Equals(checkInRowKey))
+                if (CheckInOutTypeFactory.Instance.CheckOut.Code.Equals(checkInOutEntity.Type) && !string.Empty.Equals(checkInRowKey))
                 {
-                    int totalMinutesWorked = (int)(checkInOutEntity.DateCheck - checkInsOutsEntityMap[checkInRowKey].DateCheck).TotalMinutes;
+                    CheckInOutEntity checkInEntity = checkInsOutsEntityMap[checkInRowKey];
+                    checkInEntity.DateCheck = checkInEntity.DateCheck.ToLocalTime();
+                    checkInOutEntity.DateCheck = checkInOutEntity.DateCheck.ToLocalTime();
+                    int[] totalMinutesForEachDay = DateUtils.GetTotalMinutesForEachDayBetweenTwoDateTime(checkInEntity.DateCheck, checkInOutEntity.DateCheck);
+                    checkInEntity.IsConsolidated = true;
                     checkInOutEntity.IsConsolidated = true;
-                    checkInsOutsEntityMap[checkInRowKey].IsConsolidated = true;
                     await checkInOutTable.ExecuteAsync(TableOperation.Replace(checkInOutEntity));
                     await checkInOutTable.ExecuteAsync(TableOperation.Replace(checkInsOutsEntityMap[checkInRowKey]));
-                    checkInOutEntity.DateCheck = checkInOutEntity.DateCheck.ToLocalTime();
-                    consolidatedEntityList.Add(ConsolidatedEntity.Instance.CreateConsolidatedEntityFromCheckInOutEntity(checkInOutEntity, totalMinutesWorked));
+
+                    consolidatedEntityList.Add(ConsolidatedEntity.CreateConsolidatedEntityFromCheckInOutEntity(checkInEntity, totalMinutesForEachDay[0]));
+                    if (totalMinutesForEachDay.Length == 2)
+                    {
+                        consolidatedEntityList.Add(ConsolidatedEntity.CreateConsolidatedEntityFromCheckInOutEntity(checkInOutEntity, totalMinutesForEachDay[1]));
+                    }
+
                     updatedChecks += 2;
                     checkInRowKey = string.Empty;
                     continue;

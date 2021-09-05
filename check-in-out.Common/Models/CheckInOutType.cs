@@ -1,43 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using check_in_out.Common.Utils;
+using System;
 
 namespace check_in_out.Common.Models
 {
     public class CheckInOutType
     {
         public static CheckInOutType Instance { get; } = new CheckInOutType();
-        private readonly List<CheckInOutType> checkInOutTypeList = new List<CheckInOutType>();
         public int Code { get; }
         public string Description { get; }
 
-        private CheckInOutType()
+        public CheckInOutType(int code, string description)
         {
-            if (checkInOutTypeList != null || checkInOutTypeList.Count == 0)
-            {
-                checkInOutTypeList.Add(CheckIn);
-                checkInOutTypeList.Add(CheckOut);
-            }
+            Code = code;
+            Description = description;
         }
 
-        private CheckInOutType(int code, string description)
+        public CheckInOutType()
         {
-            this.Code = code;
-            this.Description = description;
         }
-
-        public static CheckInOutType CheckIn = new CheckInOutType(0, "check in");
-        public static CheckInOutType CheckOut = new CheckInOutType(1, "check out");
 
         public string GetDescription(int code)
         {
-            foreach (CheckInOutType checkInOutType in checkInOutTypeList)
+            foreach (CheckInOutType checkInOutType in CheckInOutTypeFactory.Instance.CheckInOutTypeList)
             {
                 if (checkInOutType.Code == code)
                 {
                     return checkInOutType.Description;
                 }
             }
-            throw new ArgumentException($"There is not type with code {code}");
+            throw new ArgumentException($"There is not type with code {code}.");
         }
     }
 }
