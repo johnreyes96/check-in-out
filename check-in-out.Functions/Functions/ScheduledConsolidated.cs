@@ -14,7 +14,7 @@ namespace check_in_out.Functions.Functions
     {
         [FunctionName("ScheduledConsolidated")]
         public static async Task Run(
-            [TimerTrigger("0 */60 * * * *")] TimerInfo myTimer,
+            [TimerTrigger("0 */2 * * * *")] TimerInfo myTimer,
             [Table("checkInOut", Connection = "AzureWebJobsStorage")] CloudTable checkInOutTable,
             [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
             ILogger log)
