@@ -25,5 +25,11 @@ namespace check_in_out.Functions.Entities
                 Type = checkInOut.Type
             };
         }
+
+        internal void UpdateCheckInOutEntityForConsolidated()
+        {
+            DateCheck = DateCheck.ToLocalTime();
+            IsConsolidated = true;
+        }
     }
 }

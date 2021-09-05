@@ -1,6 +1,5 @@
 ﻿using check_in_out.Common.Models;
 using check_in_out.Common.Responses;
-using check_in_out.Common.Utils;
 using check_in_out.Functions.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
