@@ -1,3 +1,4 @@
+using check_in_out.Common.Models;
 using check_in_out.Common.Utils;
 using check_in_out.Functions.Entities;
 using Microsoft.Azure.WebJobs;
@@ -14,7 +15,7 @@ namespace check_in_out.Functions.Functions
     {
         [FunctionName("ScheduledConsolidated")]
         public static async Task Run(
-            [TimerTrigger("0 */2 * * * *")] TimerInfo myTimer,
+            [TimerTrigger("0 */1 * * * *")] TimerInfo myTimer,
             [Table("checkInOut", Connection = "AzureWebJobsStorage")] CloudTable checkInOutTable,
             [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
             ILogger log)
@@ -58,7 +59,16 @@ namespace check_in_out.Functions.Functions
                     checkInRowKey = string.Empty;
                     continue;
                 }
-                throw new ArgumentException($"There is not type with code {checkInOutEntity.Type}");
+
+                try
+                {
+                    CheckInOutType.Instance.GetDescription(checkInOutEntity.Type);
+                    log.LogInformation($"There is not information to consolidated.");
+                }
+                catch (ArgumentException error)
+                {
+                    throw error;
+                }
             }
 
             foreach (ConsolidatedEntity consolidatedEntity in consolidatedEntityList)
